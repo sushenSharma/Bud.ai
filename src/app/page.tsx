@@ -1,6 +1,7 @@
 'use client';
 
 import { useScrollAnimation } from '../hooks/useScrollAnimation';
+import { AuthForm } from '../components/AuthForm';
 
 export default function Home() {
   const heroAnimation = useScrollAnimation();
@@ -23,6 +24,7 @@ export default function Home() {
               <a href="#features" className="text-gray-600 hover:text-black transition-colors whitespace-nowrap">Features</a>
               <a href="#testimonials" className="text-gray-600 hover:text-black transition-colors whitespace-nowrap">Reviews</a>
               <a href="#contact" className="text-gray-600 hover:text-black transition-colors whitespace-nowrap">Contact</a>
+              <a href="/auth" className="bg-black text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-gray-800 transition-colors whitespace-nowrap">Sign In</a>
             </div>
             <button className="md:hidden">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -51,7 +53,7 @@ export default function Home() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <a 
-                href="#contact"
+                href="/auth"
                 className="bg-black text-white px-8 py-3 rounded-full font-semibold hover:bg-gray-800 transition-colors inline-block"
               >
                 Get Started
@@ -209,52 +211,7 @@ export default function Home() {
             <h2 className="text-3xl md:text-4xl font-bold text-black mb-4">Start Your Journey</h2>
             <p className="text-xl text-gray-600">Join our platform and get personalized cannabis recommendations.</p>
           </div>
-          <div className="bg-gray-50 rounded-lg p-8">
-            <form className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
-                  <input
-                    type="text"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    placeholder="Your first name"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
-                  <input
-                    type="text"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    placeholder="Your last name"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                <input
-                  type="email"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="your.email@example.com"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Message</label>
-                <textarea
-                  rows={4}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="Tell us how we can help you..."
-                ></textarea>
-              </div>
-              <div className="text-center">
-                <button
-                  type="submit"
-                  className="bg-black text-white px-8 py-3 rounded-full font-semibold hover:bg-gray-800 transition-colors"
-                >
-                  Join BUD.ai
-                </button>
-              </div>
-            </form>
-          </div>
+          <AuthForm />
         </div>
       </section>
 
