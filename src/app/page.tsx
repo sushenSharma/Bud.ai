@@ -23,6 +23,7 @@ export default function Home() {
               <a href="#hero" className="text-gray-600 hover:text-black transition-colors whitespace-nowrap">Home</a>
               <a href="#features" className="text-gray-600 hover:text-black transition-colors whitespace-nowrap">Features</a>
               <a href="#testimonials" className="text-gray-600 hover:text-black transition-colors whitespace-nowrap">Reviews</a>
+              <a href="/strains" className="text-gray-600 hover:text-black transition-colors whitespace-nowrap">Strains</a>
               <a href="#contact" className="text-gray-600 hover:text-black transition-colors whitespace-nowrap">Contact</a>
               <a href="/auth" className="bg-black text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-gray-800 transition-colors whitespace-nowrap">Sign In</a>
             </div>
