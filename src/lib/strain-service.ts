@@ -56,6 +56,8 @@ export class StrainService {
       return null
     }
     
+    console.log('Creating strain with data:', strain)
+    
     const { data, error } = await supabaseAdmin
       .from('strains')
       .insert(strain)
@@ -63,10 +65,17 @@ export class StrainService {
       .single()
     
     if (error) {
-      console.error('Error creating strain:', error)
+      console.error('Database error creating strain:', error)
+      console.error('Error details:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      })
       return null
     }
     
+    console.log('Strain created successfully:', data)
     return data
   }
 
@@ -160,5 +169,64 @@ export class StrainService {
   async searchAndImportStrains(query: string): Promise<Strain[]> {
     const strainUrls = await this.scraper.searchStrains(query)
     return this.bulkImportFromSeedfinder(strainUrls)
+  }
+
+  async importPopularStrains(limit: number = 50): Promise<Strain[]> {
+    console.log(`Starting import of ${limit} popular strains...`)
+    const strainUrls = await this.scraper.discoverPopularStrains(limit)
+    console.log(`Found ${strainUrls.length} strain URLs to import`)
+    return this.bulkImportFromSeedfinder(strainUrls)
+  }
+
+  async importStrainsByType(type: 'indica' | 'sativa' | 'hybrid', limit: number = 30): Promise<Strain[]> {
+    console.log(`Starting import of ${limit} ${type} strains...`)
+    const strainUrls = await this.scraper.discoverStrainsByType(type, limit)
+    console.log(`Found ${strainUrls.length} ${type} strain URLs to import`)
+    return this.bulkImportFromSeedfinder(strainUrls)
+  }
+
+  async getStrainRecommendations(userPreferences: {
+    mood?: string[]
+    effects?: string[]
+    flavors?: string[]
+    type?: 'indica' | 'sativa' | 'hybrid'
+    thc_preference?: 'low' | 'medium' | 'high'
+    experience_level?: 'beginner' | 'intermediate' | 'advanced'
+  }): Promise<Strain[]> {
+    let query = this.supabase.from('strains').select('*')
+
+    // Filter by type if specified
+    if (userPreferences.type) {
+      query = query.eq('type', userPreferences.type)
+    }
+
+    // Filter by effects if specified
+    if (userPreferences.effects && userPreferences.effects.length > 0) {
+      query = query.overlaps('effects', userPreferences.effects)
+    }
+
+    // Filter by flavors if specified
+    if (userPreferences.flavors && userPreferences.flavors.length > 0) {
+      query = query.overlaps('flavors', userPreferences.flavors)
+    }
+
+    // Filter by THC preference
+    if (userPreferences.thc_preference) {
+      const thcRanges = {
+        low: ['<15%', '10-15%', '12-18%'],
+        medium: ['15-20%', '18-22%', '15-25%'],
+        high: ['20-25%', '22-26%', '25%+']
+      }
+      // This is a simplified approach - in production you'd want better THC filtering
+    }
+
+    const { data, error } = await query.limit(10)
+
+    if (error) {
+      console.error('Error getting recommendations:', error)
+      return []
+    }
+
+    return data || []
   }
 }

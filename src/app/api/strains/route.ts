@@ -26,23 +26,30 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('POST /api/strains called')
     const body = await request.json()
+    console.log('Request body:', body)
     
     // Check if this is an import request
     if (body.seedfinder_url) {
+      console.log('Import request for URL:', body.seedfinder_url)
       const strain = await strainService.importStrainFromSeedfinder(body.seedfinder_url)
       if (!strain) {
+        console.log('Import failed - no strain returned')
         return NextResponse.json(
-          { error: 'Failed to import strain' },
+          { error: 'Failed to import strain from Seedfinder' },
           { status: 400 }
         )
       }
+      console.log('Import successful:', strain.name)
       return NextResponse.json(strain, { status: 201 })
     }
     
     // Regular strain creation
+    console.log('Regular strain creation request')
     const strain = await strainService.createStrain(body)
     if (!strain) {
+      console.log('Strain creation failed')
       return NextResponse.json(
         { error: 'Failed to create strain' },
         { status: 400 }
@@ -53,7 +60,11 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error in POST /api/strains:', error)
     return NextResponse.json(
-      { error: 'Failed to create strain' },
+      { 
+        error: 'Server error', 
+        details: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
+      },
       { status: 500 }
     )
   }
