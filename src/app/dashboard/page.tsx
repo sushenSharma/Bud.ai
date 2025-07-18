@@ -3,6 +3,7 @@
 import { useAuth } from '../../contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { Strain } from '@/lib/database.types'
 
 const effects = [
   { id: 'creative', name: 'Creative', icon: '💡' },
@@ -51,6 +52,10 @@ export default function DashboardPage() {
   const [selectedFlavors, setSelectedFlavors] = useState<string[]>([])
   const [selectedStrength, setSelectedStrength] = useState<string>('')
   const [searchQuery, setSearchQuery] = useState('')
+  const [recommendations, setRecommendations] = useState<Strain[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [showResults, setShowResults] = useState(false)
 
   useEffect(() => {
     if (!loading && !user) {
@@ -116,13 +121,53 @@ export default function DashboardPage() {
     }
   }
 
-  const findStrains = () => {
-    console.log('Finding strains with:', {
-      effects: selectedEffects,
-      format: selectedFormat,
-      flavors: selectedFlavors,
-      strength: selectedStrength
-    })
+  const findStrains = async () => {
+    setLoading(true)
+    setError('')
+    
+    try {
+      const preferences = {
+        effects: selectedEffects,
+        type: selectedFormat === 'flower' ? 'hybrid' : 'hybrid', // Map format to strain type
+        flavors: selectedFlavors,
+        medical_uses: [], // Could be added in future
+        experience_level: selectedStrength === 'low' ? 'beginner' : selectedStrength === 'high' ? 'experienced' : 'intermediate'
+      }
+      
+      console.log('Getting recommendations for preferences:', preferences)
+      
+      const response = await fetch('/api/recommendations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(preferences),
+      })
+      
+      const data = await response.json()
+      
+      if (response.ok && data.success) {
+        setRecommendations(data.recommendations)
+        setShowResults(true)
+      } else {
+        setError(data.error || 'Failed to get recommendations')
+      }
+    } catch (err) {
+      setError('Network error. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const resetSearch = () => {
+    setCurrentStep(1)
+    setSelectedEffects([])
+    setSelectedFormat('')
+    setSelectedFlavors([])
+    setSelectedStrength('')
+    setRecommendations([])
+    setShowResults(false)
+    setError('')
   }
 
   const renderStepContent = () => {
@@ -291,70 +336,137 @@ export default function DashboardPage() {
           </span>
         </div>
 
-        {/* Step Content */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-          {renderStepContent()}
-        </div>
+        {/* Error Display */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+            {error}
+          </div>
+        )}
 
-        {/* Search Alternative */}
-        <div className="text-center mb-8">
-          <p className="text-gray-600 mb-4">or</p>
-          <div className="max-w-md mx-auto">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search for your favorite strain"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              />
-              <button className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-green-600 text-white px-4 py-2 rounded-full text-sm hover:bg-green-700 transition-colors">
-                StrainMe™
+        {/* Results View */}
+        {showResults && recommendations.length > 0 ? (
+          <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Your Personalized Recommendations</h2>
+              <p className="text-gray-600">Based on your preferences, here are the best strains for you:</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              {recommendations.slice(0, 4).map((strain) => (
+                <div key={strain.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                  <div className="flex justify-between items-start mb-3">
+                    <h3 className="font-semibold text-gray-900 text-lg">{strain.name}</h3>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      strain.type === 'indica' ? 'bg-purple-100 text-purple-700' :
+                      strain.type === 'sativa' ? 'bg-green-100 text-green-700' :
+                      'bg-blue-100 text-blue-700'
+                    }`}>
+                      {strain.type}
+                    </span>
+                  </div>
+                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">{strain.description}</p>
+                  <div className="space-y-2">
+                    <div>
+                      <span className="text-green-600 font-medium text-sm">Effects: </span>
+                      <span className="text-gray-700 text-sm">{strain.effects.slice(0, 3).join(', ')}</span>
+                    </div>
+                    <div>
+                      <span className="text-green-600 font-medium text-sm">THC: </span>
+                      <span className="text-gray-700 text-sm">{strain.thc_content}</span>
+                    </div>
+                    <div>
+                      <span className="text-green-600 font-medium text-sm">Flavors: </span>
+                      <span className="text-gray-700 text-sm">{strain.flavors.slice(0, 2).join(', ')}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div className="text-center space-x-4">
+              <a 
+                href="/strains" 
+                className="bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors inline-block"
+              >
+                View All Strains
+              </a>
+              <button
+                onClick={resetSearch}
+                className="border border-gray-300 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors inline-block"
+              >
+                New Search
               </button>
             </div>
           </div>
-        </div>
+        ) : !showResults ? (
+          <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+            {renderStepContent()}
+          </div>
+        ) : null}
+
+        {/* Search Alternative */}
+        {!showResults && (
+          <div className="text-center mb-8">
+            <p className="text-gray-600 mb-4">or</p>
+            <div className="max-w-md mx-auto">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search for your favorite strain"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                />
+                <button className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-green-600 text-white px-4 py-2 rounded-full text-sm hover:bg-green-700 transition-colors">
+                  StrainMe™
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Navigation */}
-        <div className="flex justify-between items-center">
-          <button
-            onClick={prevStep}
-            disabled={currentStep === 1}
-            className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-              currentStep === 1
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-            }`}
-          >
-            Previous
-          </button>
+        {!showResults && (
+          <div className="flex justify-between items-center">
+            <button
+              onClick={prevStep}
+              disabled={currentStep === 1}
+              className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+                currentStep === 1
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              Previous
+            </button>
 
-          {currentStep < 4 ? (
-            <button
-              onClick={nextStep}
-              disabled={!canProceed()}
-              className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-                canProceed()
-                  ? 'bg-green-600 text-white hover:bg-green-700'
-                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-              }`}
-            >
-              Next
-            </button>
-          ) : (
-            <button
-              onClick={findStrains}
-              disabled={!canProceed()}
-              className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-                canProceed()
-                  ? 'bg-green-600 text-white hover:bg-green-700'
-                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-              }`}
-            >
-              Find My Strains
-            </button>
-          )}
-        </div>
+            {currentStep < 4 ? (
+              <button
+                onClick={nextStep}
+                disabled={!canProceed()}
+                className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+                  canProceed()
+                    ? 'bg-green-600 text-white hover:bg-green-700'
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                }`}
+              >
+                Next
+              </button>
+            ) : (
+              <button
+                onClick={findStrains}
+                disabled={loading || !canProceed()}
+                className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+                  canProceed() && !loading
+                    ? 'bg-green-600 text-white hover:bg-green-700'
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                }`}
+              >
+                {loading ? 'Finding Strains...' : 'Find My Strains'}
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Terms */}
         <div className="text-center mt-8">
