@@ -5,6 +5,13 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Strain } from '@/lib/database.types'
 
+// Declare gtag for TypeScript
+declare global {
+  interface Window {
+    gtag?: (...args: any[]) => void
+  }
+}
+
 const effects = [
   { id: 'creative', name: 'Creative', icon: '💡' },
   { id: 'energized', name: 'Energized', icon: '⚡' },
@@ -43,6 +50,24 @@ const strengths = [
   { id: 'cbd', name: 'CBD Dominant', description: 'Therapeutic, non-psychoactive' },
 ]
 
+const cannabisFacts = [
+  "Cannabis has been used medicinally for over 5,000 years across various cultures.",
+  "There are over 100 different cannabinoids found in the cannabis plant.",
+  "The 'entourage effect' suggests cannabinoids work better together than in isolation.",
+  "Cannabis terpenes give strains their unique aromas and may influence effects.",
+  "Indica and Sativa classifications are more about plant structure than effects.",
+  "CBD was first isolated from cannabis in 1940 by American chemist Roger Adams.",
+  "The human body has an endocannabinoid system that naturally produces cannabis-like compounds.",
+  "Cannabis plants can be male, female, or hermaphrodite.",
+  "Hemp and marijuana are both cannabis, but hemp contains less than 0.3% THC.",
+  "The first cannabis laws in America actually required farmers to grow hemp.",
+  "Cannabis seeds are considered a superfood, containing all essential amino acids.",
+  "Some cannabis strains can contain over 30% THC in optimal growing conditions.",
+  "The cannabis plant has been found to have over 400 chemical compounds.",
+  "Myrcene is the most common terpene in cannabis and promotes relaxation.",
+  "Cannabis prohibition began in the 1930s, largely due to economic and racial factors."
+]
+
 export default function DashboardPage() {
   const { user, loading, signOut } = useAuth()
   const router = useRouter()
@@ -53,9 +78,11 @@ export default function DashboardPage() {
   const [selectedStrength, setSelectedStrength] = useState<string>('')
   const [searchQuery, setSearchQuery] = useState('')
   const [recommendations, setRecommendations] = useState<Strain[]>([])
-  const [loading, setLoading] = useState(false)
+  const [isSearching, setIsSearching] = useState(false)
   const [error, setError] = useState('')
   const [showResults, setShowResults] = useState(false)
+  const [currentFactIndex, setCurrentFactIndex] = useState(0)
+  const [loadingProgress, setLoadingProgress] = useState(0)
 
   useEffect(() => {
     if (!loading && !user) {
@@ -122,8 +149,22 @@ export default function DashboardPage() {
   }
 
   const findStrains = async () => {
-    setLoading(true)
+    setIsSearching(true)
     setError('')
+    setLoadingProgress(0)
+    setCurrentFactIndex(0)
+    
+    // Start the loading animation and fact cycling
+    const factInterval = setInterval(() => {
+      setCurrentFactIndex(prev => (prev + 1) % cannabisFacts.length)
+    }, 4000) // Change fact every 4 seconds
+
+    const progressInterval = setInterval(() => {
+      setLoadingProgress(prev => {
+        if (prev >= 90) return prev
+        return prev + Math.random() * 15
+      })
+    }, 300) // Update progress every 300ms
     
     try {
       const preferences = {
@@ -136,26 +177,42 @@ export default function DashboardPage() {
       
       console.log('Getting recommendations for preferences:', preferences)
       
-      const response = await fetch('/api/recommendations', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(preferences),
-      })
+      // Add minimum loading time for better UX
+      const [response] = await Promise.all([
+        fetch('/api/recommendations', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(preferences),
+        }),
+        new Promise(resolve => setTimeout(resolve, 4000)) // Minimum 4 seconds of loading
+      ])
       
       const data = await response.json()
       
-      if (response.ok && data.success) {
-        setRecommendations(data.recommendations)
-        setShowResults(true)
-      } else {
-        setError(data.error || 'Failed to get recommendations')
-      }
+      // Complete the progress bar
+      setLoadingProgress(100)
+      
+      // Show completion for a moment
+      setTimeout(() => {
+        clearInterval(factInterval)
+        clearInterval(progressInterval)
+        
+        if (response.ok && data.success) {
+          setRecommendations(data.recommendations)
+          setShowResults(true)
+        } else {
+          setError(data.error || 'Failed to get recommendations')
+        }
+        setIsSearching(false)
+      }, 500)
+
     } catch (err) {
+      clearInterval(factInterval)
+      clearInterval(progressInterval)
       setError('Network error. Please try again.')
-    } finally {
-      setLoading(false)
+      setIsSearching(false)
     }
   }
 
@@ -168,6 +225,50 @@ export default function DashboardPage() {
     setRecommendations([])
     setShowResults(false)
     setError('')
+  }
+
+  const handleBuyNow = (strain: Strain) => {
+    // Format strain name for URL (replace spaces with hyphens, lowercase, add number suffix)
+    const formattedStrainName = strain.name.toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '')
+      .replace(/--+/g, '-') // Replace multiple hyphens with single hyphen
+      .replace(/^-+|-+$/g, '') // Remove leading/trailing hyphens
+    
+    // Create BC Cannabis Stores URL with strain information
+    const bcCannabisUrl = `https://www.bccannabisstores.com/collections/new-products/products/${formattedStrainName}-5?ref=budai&utm_source=budai&utm_medium=recommendation`
+    
+    // Track the recommendation click (optional analytics)
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'purchase_intent', {
+        strain_name: strain.name,
+        strain_type: strain.type,
+        referral_source: 'budai_recommendation'
+      })
+    }
+    
+    // Open BC Cannabis Stores in new tab
+    window.open(bcCannabisUrl, '_blank', 'noopener,noreferrer')
+  }
+
+  const handleAddToCart = (strain: Strain) => {
+    // For "Add to Cart", redirect to BC Cannabis Stores search or collection page
+    const bcCannabisSearchUrl = `https://www.bccannabisstores.com/search?q=${encodeURIComponent(strain.name)}&ref=budai&utm_source=budai&utm_medium=search`
+    
+    // Show a message and redirect
+    alert(`Redirecting you to BC Cannabis Stores to find ${strain.name}!`)
+    
+    // Track the add to cart click
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'add_to_cart_intent', {
+        strain_name: strain.name,
+        strain_type: strain.type,
+        referral_source: 'budai_recommendation'
+      })
+    }
+    
+    // Open BC Cannabis Stores search in new tab
+    window.open(bcCannabisSearchUrl, '_blank', 'noopener,noreferrer')
   }
 
   const renderStepContent = () => {
@@ -278,7 +379,14 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <>
+      <style jsx>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
+      <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
@@ -343,8 +451,62 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Results View */}
-        {showResults && recommendations.length > 0 ? (
+        {/* Loading Screen */}
+        {isSearching ? (
+          <div className="bg-white rounded-lg shadow-sm p-8 mb-8">
+            <div className="text-center">
+              {/* Simple Loading Icon */}
+              <div className="mb-6">
+                <div className="mx-auto w-12 h-12 border-4 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
+              </div>
+
+              {/* Loading Text */}
+              <h2 className="text-xl font-semibold text-gray-800 mb-6">
+                Finding Your Perfect Match...
+              </h2>
+              
+              {/* Progress Bar */}
+              <div className="w-full max-w-md mx-auto mb-8">
+                <div className="w-full bg-gray-200 rounded-full h-1.5">
+                  <div 
+                    className="bg-green-600 h-1.5 rounded-full transition-all duration-1000 ease-out"
+                    style={{ width: `${loadingProgress}%` }}
+                  ></div>
+                </div>
+                <div className="text-xs text-gray-500 mt-2">
+                  {Math.round(loadingProgress)}% complete
+                </div>
+              </div>
+
+              {/* Cannabis Facts */}
+              <div className="bg-gray-50 rounded-lg p-6 max-w-2xl mx-auto">
+                <div className="text-left">
+                  <h3 className="text-sm font-medium text-gray-600 mb-3 flex items-center">
+                    <svg className="w-4 h-4 text-gray-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"/>
+                    </svg>
+                    Cannabis Fact
+                  </h3>
+                  <p 
+                    key={currentFactIndex}
+                    className="text-gray-700 leading-relaxed text-sm"
+                    style={{
+                      opacity: 1,
+                      transition: 'opacity 0.3s ease-in-out'
+                    }}
+                  >
+                    {cannabisFacts[currentFactIndex]}
+                  </p>
+                </div>
+              </div>
+
+              {/* Simple Status */}
+              <div className="mt-6 text-xs text-gray-500">
+                Analyzing your preferences and matching with our strain database...
+              </div>
+            </div>
+          </div>
+        ) : showResults && recommendations.length > 0 ? (
           <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
             <div className="text-center mb-6">
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Your Personalized Recommendations</h2>
@@ -365,7 +527,7 @@ export default function DashboardPage() {
                     </span>
                   </div>
                   <p className="text-gray-600 text-sm mb-3 line-clamp-2">{strain.description}</p>
-                  <div className="space-y-2">
+                  <div className="space-y-2 mb-4">
                     <div>
                       <span className="text-green-600 font-medium text-sm">Effects: </span>
                       <span className="text-gray-700 text-sm">{strain.effects.slice(0, 3).join(', ')}</span>
@@ -379,23 +541,70 @@ export default function DashboardPage() {
                       <span className="text-gray-700 text-sm">{strain.flavors.slice(0, 2).join(', ')}</span>
                     </div>
                   </div>
+                  
+                  {/* Purchase Options */}
+                  <div className="border-t pt-3 space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-lg font-bold text-gray-900">$45.00</span>
+                      <span className="text-sm text-gray-500">per 1/8 oz</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => handleBuyNow(strain)}
+                        className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors flex items-center justify-center"
+                      >
+                        <span>Buy at BC Cannabis</span>
+                        <svg className="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                      </button>
+                      <button 
+                        onClick={() => handleAddToCart(strain)}
+                        className="flex-1 border border-green-600 text-green-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-50 transition-colors flex items-center justify-center"
+                      >
+                        <span>Search BC Cannabis</span>
+                        <svg className="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
             
             <div className="text-center space-x-4">
-              <a 
-                href="/strains" 
-                className="bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors inline-block"
+              <button 
+                onClick={() => window.open('https://www.bccannabisstores.com/collections/new-products?ref=budai&utm_source=budai&utm_medium=view_all', '_blank', 'noopener,noreferrer')}
+                className="bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors inline-flex items-center"
               >
-                View All Strains
-              </a>
+                <span>Browse All at BC Cannabis Stores</span>
+                <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </button>
               <button
                 onClick={resetSearch}
                 className="border border-gray-300 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors inline-block"
               >
                 New Search
               </button>
+            </div>
+            
+            {/* BC Cannabis Stores Partnership Notice */}
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mt-6">
+              <div className="flex items-start">
+                <svg className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"/>
+                </svg>
+                <div>
+                  <h4 className="text-green-800 font-semibold mb-1">Powered by BC Cannabis Stores</h4>
+                  <p className="text-green-700 text-sm">
+                    We've partnered with BC Cannabis Stores to provide you with access to premium, government-regulated cannabis products. 
+                    When you click "Buy at BC Cannabis" or "Search BC Cannabis", you'll be redirected to their secure platform to purchase your selected strains.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         ) : !showResults ? (
@@ -455,14 +664,14 @@ export default function DashboardPage() {
             ) : (
               <button
                 onClick={findStrains}
-                disabled={loading || !canProceed()}
+                disabled={isSearching || !canProceed()}
                 className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-                  canProceed() && !loading
+                  canProceed() && !isSearching
                     ? 'bg-green-600 text-white hover:bg-green-700'
                     : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 }`}
               >
-                {loading ? 'Finding Strains...' : 'Find My Strains'}
+                {isSearching ? 'Finding Strains...' : 'Find My Strains'}
               </button>
             )}
           </div>
@@ -477,6 +686,7 @@ export default function DashboardPage() {
           </p>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   )
 }

@@ -24,6 +24,12 @@ export default function Home() {
               <a href="#features" className="text-gray-600 hover:text-teal-600 transition-colors whitespace-nowrap">Memberships</a>
               <a href="/strains" className="text-gray-600 hover:text-teal-600 transition-colors whitespace-nowrap">Products</a>
               <a href="#contact" className="text-gray-600 hover:text-teal-600 transition-colors whitespace-nowrap">Blog</a>
+              <a href="/cart" className="text-gray-600 hover:text-teal-600 transition-colors whitespace-nowrap flex items-center">
+                <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 6M7 13l-1.5 6m0 0h9m-9 0h9" />
+                </svg>
+                Cart
+              </a>
               <a href="/auth" className="bg-teal-600 text-white px-6 py-2 rounded-full text-sm font-semibold hover:bg-teal-700 transition-colors whitespace-nowrap">Get Started</a>
             </div>
             <button className="md:hidden">
@@ -34,109 +40,45 @@ export default function Home() {
           </div>
         </div>
       </nav>
+    {/* Spacer to push content below fixed navbar */}
+    <div className="h-16 md:h-20"></div>
 
-      {/* Hero Section */}
-      <section id="hero" className="relative pt-20 pb-32 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 overflow-hidden">
-        {/* Background Effects */}
-        <div className="absolute inset-0 overflow-hidden">
-          {/* Animated gradient orbs */}
-          <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-r from-green-400/20 to-teal-400/20 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-r from-teal-400/15 to-green-400/15 rounded-full blur-3xl animate-pulse delay-1000"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-r from-green-500/5 to-teal-500/5 rounded-full blur-3xl"></div>
-          
-          {/* Grid pattern */}
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.02)_1px,transparent_1px)] bg-[size:100px_100px]"></div>
-          
-          {/* Floating particles */}
-          <div className="absolute top-32 left-1/4 w-2 h-2 bg-green-400/60 rounded-full animate-bounce delay-300"></div>
-          <div className="absolute top-40 right-1/3 w-1 h-1 bg-teal-400/60 rounded-full animate-bounce delay-700"></div>
-          <div className="absolute bottom-40 left-1/3 w-1.5 h-1.5 bg-green-300/60 rounded-full animate-bounce delay-1000"></div>
-        </div>
+{/* Hero Section */}
+<section id="hero" className="pt-44 pb-24 md:pt-44 md:pb-32">
+  <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12">
+    <div 
+      ref={heroAnimation.elementRef}
+      className={`transition-all duration-1000 ${
+        heroAnimation.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+      }`}
+    >
+      <div className="rounded-3xl overflow-hidden shadow-xl" style={{ backgroundColor: '#054848' }}>
+        <div className="px-8 py-16 md:px-16 md:py-20 lg:px-20 lg:py-24 text-center">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-white mb-12 leading-tight max-w-4xl mx-auto">
+            Earn points with every visit,
+            <span className="block mt-2">paving the way for rewards</span>
+            <span className="block mt-2">and benefits</span>
+          </h1>
 
-        {/* Curved Bottom */}
-        <div className="absolute bottom-0 left-0 right-0 z-20">
-          <svg viewBox="0 0 1440 120" className="w-full h-24 md:h-32">
-            <path fill="#f9fafb" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,112C672,96,768,96,864,112C960,128,1056,160,1152,160C1248,160,1344,128,1392,112L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
-          </svg>
-        </div>
-        
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="flex flex-col items-center justify-center text-center min-h-[700px] py-24">
-            <div 
-              ref={heroAnimation.elementRef}
-              className={`transition-all duration-1000 max-w-5xl mx-auto ${
-                heroAnimation.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-              }`}
+          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+            <a
+              href="/auth"
+              className="bg-white/20 backdrop-blur-sm text-white px-8 py-4 rounded-full font-semibold hover:bg-white/30 transition-all duration-300 text-center border border-white/30 min-w-[120px]"
             >
-              {/* Enhanced Icon/Logo */}
-              <div className="mb-12 relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-green-400/20 to-teal-400/20 blur-xl rounded-full"></div>
-                <div className="relative w-24 h-24 mx-auto bg-gradient-to-br from-green-400 via-teal-400 to-green-500 rounded-3xl flex items-center justify-center shadow-2xl transform hover:scale-110 transition-transform duration-300">
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-3xl"></div>
-                  <svg className="w-12 h-12 text-white relative z-10" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2L13.09 8.26L22 9L13.09 9.74L12 16L10.91 9.74L2 9L10.91 8.26L12 2Z"/>
-                  </svg>
-                </div>
-              </div>
-
-              <h1 className="text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-400 via-teal-300 to-green-400 mb-8 leading-tight tracking-tight">
-                Find Your Perfect
-                <span className="block mt-4 bg-gradient-to-r from-green-300 via-teal-200 to-green-300 bg-clip-text text-transparent">Cannabis Strain</span>
-                <span className="block mt-4 text-4xl md:text-5xl lg:text-6xl bg-gradient-to-r from-green-200 via-teal-100 to-green-200 bg-clip-text text-transparent">with AI Recommendations</span>
-              </h1>
-              
-              <p className="text-xl md:text-2xl lg:text-3xl text-gray-300 mb-16 leading-relaxed max-w-4xl mx-auto font-light">
-                Get personalized strain recommendations based on your preferences, effects, and experience level. 
-                <span className="block mt-2 text-gray-400">Start your cannabis journey with confidence.</span>
-              </p>
-              
-              <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
-                <a 
-                  href="/auth"
-                  className="group relative bg-gradient-to-r from-green-500 to-teal-500 text-white px-12 py-6 rounded-full font-bold hover:from-green-600 hover:to-teal-600 transition-all duration-300 text-xl shadow-2xl transform hover:scale-105 hover:shadow-green-500/25"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-green-400 to-teal-400 rounded-full blur opacity-60 group-hover:opacity-80 transition-opacity"></div>
-                  <span className="relative z-10">Get Started Free</span>
-                </a>
-                <a 
-                  href="#about"
-                  className="group border-2 border-green-400/50 text-green-400 px-12 py-6 rounded-full font-bold hover:bg-green-400/10 hover:border-green-400 transition-all duration-300 text-xl backdrop-blur-sm hover:shadow-lg hover:shadow-green-400/20"
-                >
-                  Learn More
-                </a>
-              </div>
-
-              {/* Enhanced Trust indicators */}
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-12 text-gray-400">
-                <div className="group flex items-center gap-3 bg-white/5 backdrop-blur-sm px-6 py-3 rounded-full border border-white/10 hover:border-green-400/30 transition-all duration-300">
-                  <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-teal-400 rounded-full flex items-center justify-center">
-                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
-                    </svg>
-                  </div>
-                  <span className="font-semibold text-gray-300 group-hover:text-green-400 transition-colors">AI-Powered</span>
-                </div>
-                <div className="group flex items-center gap-3 bg-white/5 backdrop-blur-sm px-6 py-3 rounded-full border border-white/10 hover:border-green-400/30 transition-all duration-300">
-                  <div className="w-8 h-8 bg-gradient-to-r from-teal-400 to-green-400 rounded-full flex items-center justify-center">
-                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
-                    </svg>
-                  </div>
-                  <span className="font-semibold text-gray-300 group-hover:text-green-400 transition-colors">Expert Verified</span>
-                </div>
-                <div className="group flex items-center gap-3 bg-white/5 backdrop-blur-sm px-6 py-3 rounded-full border border-white/10 hover:border-green-400/30 transition-all duration-300">
-                  <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-teal-400 rounded-full flex items-center justify-center">
-                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
-                    </svg>
-                  </div>
-                  <span className="font-semibold text-gray-300 group-hover:text-green-400 transition-colors">25k+ Happy Users</span>
-                </div>
-              </div>
-            </div>
+              Join
+            </a>
+            <a
+              href="#about"
+              className="border-2 border-white/50 text-white px-8 py-4 rounded-full font-semibold hover:bg-white/10 transition-all duration-300 text-center min-w-[140px]"
+            >
+              Learn More
+            </a>
           </div>
         </div>
-      </section>
+      </div>
+    </div>
+  </div>
+</section>
 
       {/* About Section */}
       <section id="about" className="py-16 md:py-20 bg-white">

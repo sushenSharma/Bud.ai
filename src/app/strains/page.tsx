@@ -7,7 +7,6 @@ export default function StrainsPage() {
   const [strains, setStrains] = useState<Strain[]>([])
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
-  const [searchQuery, setSearchQuery] = useState('')
   const [importUrl, setImportUrl] = useState('')
 
   const showMessage = (msg: string) => {
@@ -15,11 +14,10 @@ export default function StrainsPage() {
     setTimeout(() => setMessage(''), 3000)
   }
 
-  const fetchStrains = async (search?: string) => {
+  const fetchStrains = async () => {
     setLoading(true)
     try {
-      const url = search ? `/api/strains?search=${encodeURIComponent(search)}` : '/api/strains'
-      const response = await fetch(url)
+      const response = await fetch('/api/strains')
       const data = await response.json()
       
       if (response.ok) {
@@ -105,51 +103,6 @@ export default function StrainsPage() {
     }
   }
 
-  const createTestStrain = async () => {
-    const testStrain = {
-      name: 'Test Strain ' + Date.now(),
-      type: 'hybrid' as const,
-      genetics: 'Test Genetics',
-      breeder: 'Test Breeder',
-      flowering_time: '8-10 weeks',
-      yield_indoor: '400-500g/m²',
-      yield_outdoor: '600-800g/plant',
-      height_indoor: '60-100cm',
-      height_outdoor: '150-200cm',
-      thc_content: '18-22%',
-      cbd_content: '0.5-1%',
-      description: 'This is a test strain for API testing purposes.',
-      effects: ['relaxed', 'happy', 'euphoric'],
-      flavors: ['citrus', 'pine', 'earthy'],
-      medical_uses: ['stress', 'anxiety', 'pain'],
-      growing_difficulty: 'moderate' as const,
-      seedfinder_url: `https://seedfinder.eu/test-strain-${Date.now()}`
-    }
-    
-    setLoading(true)
-    try {
-      const response = await fetch('/api/strains', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(testStrain),
-      })
-      
-      const data = await response.json()
-      
-      if (response.ok) {
-        showMessage(`Successfully created: ${data.name}`)
-        fetchStrains() // Refresh the list
-      } else {
-        showMessage(`Error: ${data.error}`)
-      }
-    } catch (error) {
-      showMessage(`Error: ${error}`)
-    } finally {
-      setLoading(false)
-    }
-  }
 
   useEffect(() => {
     fetchStrains()
@@ -166,303 +119,41 @@ export default function StrainsPage() {
         </div>
       )}
 
-      {/* API Testing Controls */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        {/* Search */}
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold mb-4">Search Strains</h2>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              placeholder="Search by name, breeder, or genetics..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault()
-                  fetchStrains(searchQuery)
-                }
-              }}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <button
-              type="button"
-              onClick={(e) => {
+      {/* Import from Seedfinder */}
+      <div className="bg-white p-6 rounded-lg shadow-md mb-8 max-w-2xl mx-auto">
+        <h2 className="text-xl font-semibold mb-4 text-center">Import from Seedfinder</h2>
+        <div className="flex gap-2">
+          <input
+            type="url"
+            placeholder="https://seedfinder.eu/strain-info/..."
+            value={importUrl}
+            onChange={(e) => {
+              console.log('URL input changed:', e.target.value)
+              setImportUrl(e.target.value)
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
                 e.preventDefault()
-                e.stopPropagation()
-                fetchStrains(searchQuery)
-              }}
-              disabled={loading}
-              className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50"
-            >
-              Search
-            </button>
-          </div>
+                importStrain()
+              }
+            }}
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+          />
           <button
             type="button"
             onClick={(e) => {
               e.preventDefault()
               e.stopPropagation()
-              setSearchQuery('')
-              fetchStrains()
+              importStrain()
             }}
             disabled={loading}
-            className="mt-2 px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 disabled:opacity-50"
+            className="px-6 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 disabled:opacity-50 font-medium"
           >
-            Show All
+            Import
           </button>
-        </div>
-
-        {/* Import from Seedfinder */}
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold mb-4">Import from Seedfinder</h2>
-          <div className="flex gap-2">
-            <input
-              type="url"
-              placeholder="https://seedfinder.eu/strain-info/..."
-              value={importUrl}
-              onChange={(e) => {
-                console.log('URL input changed:', e.target.value)
-                setImportUrl(e.target.value)
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault()
-                  importStrain()
-                }
-              }}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                importStrain()
-              }}
-              disabled={loading}
-              className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 disabled:opacity-50"
-            >
-              Import
-            </button>
-          </div>
         </div>
       </div>
 
-      {/* Action Buttons */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <button
-          onClick={createTestStrain}
-          disabled={loading}
-          className="px-4 py-3 bg-purple-500 text-white rounded-md hover:bg-purple-600 disabled:opacity-50 font-medium text-sm"
-        >
-          Create Test Strain
-        </button>
-        <button
-          onClick={() => fetchStrains()}
-          disabled={loading}
-          className="px-4 py-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 font-medium text-sm"
-        >
-          Refresh List
-        </button>
-        <button
-          onClick={() => window.open('/api/test-db', '_blank')}
-          disabled={loading}
-          className="px-4 py-3 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 disabled:opacity-50 font-medium text-sm"
-        >
-          Test DB Connection
-        </button>
-        <button
-          onClick={async () => {
-            setLoading(true)
-            try {
-              // Test scraper first
-              const testUrl = 'https://seedfinder.eu/strain-info/Northern-Lights/Sensi-Seeds/'
-              const scraperResponse = await fetch('/api/test-scraper', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ url: testUrl })
-              })
-              const scraperData = await scraperResponse.json()
-              
-              if (scraperData.success) {
-                showMessage(`Scraper test: ${scraperData.message}`)
-                console.log('Scraped data:', scraperData.scraped_data)
-              } else {
-                showMessage(`Scraper Error: ${scraperData.error}`)
-                console.error('Scraper error details:', scraperData)
-              }
-              
-              // Then test direct API
-              const response = await fetch('/api/test-create', { method: 'POST' })
-              const data = await response.json()
-              if (data.success) {
-                showMessage('Direct API test successful!')
-                fetchStrains()
-              } else {
-                showMessage(`API Error: ${data.error}`)
-              }
-            } catch (error) {
-              showMessage(`Test failed: ${error}`)
-            } finally {
-              setLoading(false)
-            }
-          }}
-          disabled={loading}
-          className="px-6 py-3 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50 font-medium"
-        >
-          Test Scraper + API
-        </button>
-        <button
-          onClick={async () => {
-            const testUrl = importUrl || 'https://seedfinder.eu/strain-info/Northern-Lights/Sensi-Seeds/'
-            setLoading(true)
-            try {
-              const response = await fetch('/api/test-scraper', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ url: testUrl })
-              })
-              const data = await response.json()
-              if (data.success) {
-                showMessage(`Scraper test: ${data.message}`)
-                console.log('Scraped data:', data.scraped_data)
-              } else {
-                showMessage(`Scraper Error: ${data.error}`)
-                console.error('Scraper error details:', data)
-              }
-            } catch (error) {
-              showMessage(`Scraper test failed: ${error}`)
-              console.error('Scraper test error:', error)
-            } finally {
-              setLoading(false)
-            }
-          }}
-          disabled={loading}
-          className="px-4 py-3 bg-orange-500 text-white rounded-md hover:bg-orange-600 disabled:opacity-50 font-medium text-sm"
-        >
-          Test Scraper
-        </button>
-      </div>
-
-      {/* Bulk Import Section */}
-      <div className="bg-gray-50 p-6 rounded-lg mb-8">
-        <h2 className="text-xl font-semibold mb-4">Bulk Import Strains</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <button
-            onClick={async () => {
-              setLoading(true)
-              try {
-                const response = await fetch('/api/strains/bulk-import', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ type: 'popular', limit: 20 })
-                })
-                const data = await response.json()
-                if (data.success) {
-                  showMessage(`Imported ${data.imported_count} popular strains!`)
-                  fetchStrains()
-                } else {
-                  showMessage(`Import Error: ${data.error}`)
-                }
-              } catch (error) {
-                showMessage(`Import failed: ${error}`)
-              } finally {
-                setLoading(false)
-              }
-            }}
-            disabled={loading}
-            className="px-4 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 font-medium text-sm"
-          >
-            Import Popular (20)
-          </button>
-          <button
-            onClick={async () => {
-              setLoading(true)
-              try {
-                const response = await fetch('/api/strains/bulk-import', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ type: 'indica', limit: 15 })
-                })
-                const data = await response.json()
-                if (data.success) {
-                  showMessage(`Imported ${data.imported_count} indica strains!`)
-                  fetchStrains()
-                } else {
-                  showMessage(`Import Error: ${data.error}`)
-                }
-              } catch (error) {
-                showMessage(`Import failed: ${error}`)
-              } finally {
-                setLoading(false)
-              }
-            }}
-            disabled={loading}
-            className="px-4 py-3 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50 font-medium text-sm"
-          >
-            Import Indica (15)
-          </button>
-          <button
-            onClick={async () => {
-              setLoading(true)
-              try {
-                const response = await fetch('/api/strains/bulk-import', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ type: 'sativa', limit: 15 })
-                })
-                const data = await response.json()
-                if (data.success) {
-                  showMessage(`Imported ${data.imported_count} sativa strains!`)
-                  fetchStrains()
-                } else {
-                  showMessage(`Import Error: ${data.error}`)
-                }
-              } catch (error) {
-                showMessage(`Import failed: ${error}`)
-              } finally {
-                setLoading(false)
-              }
-            }}
-            disabled={loading}
-            className="px-4 py-3 bg-green-500 text-white rounded-md hover:bg-green-600 disabled:opacity-50 font-medium text-sm"
-          >
-            Import Sativa (15)
-          </button>
-          <button
-            onClick={async () => {
-              setLoading(true)
-              try {
-                const response = await fetch('/api/strains/bulk-import', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ type: 'hybrid', limit: 15 })
-                })
-                const data = await response.json()
-                if (data.success) {
-                  showMessage(`Imported ${data.imported_count} hybrid strains!`)
-                  fetchStrains()
-                } else {
-                  showMessage(`Import Error: ${data.error}`)
-                }
-              } catch (error) {
-                showMessage(`Import failed: ${error}`)
-              } finally {
-                setLoading(false)
-              }
-            }}
-            disabled={loading}
-            className="px-4 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 font-medium text-sm"
-          >
-            Import Hybrid (15)
-          </button>
-        </div>
-        <p className="text-sm text-gray-600 mt-4">
-          These buttons will search Seedfinder and import multiple strains automatically. 
-          Each import includes realistic generated data for effects, flavors, and growing information.
-        </p>
-      </div>
 
       {/* Loading Indicator */}
       {loading && (

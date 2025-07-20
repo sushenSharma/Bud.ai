@@ -193,7 +193,8 @@ export class StrainService {
     thc_preference?: 'low' | 'medium' | 'high'
     experience_level?: 'beginner' | 'intermediate' | 'advanced'
   }): Promise<Strain[]> {
-    let query = this.supabase.from('strains').select('*')
+    // First try to get recommendations based on user preferences
+    let query = supabase.from('strains').select('*')
 
     // Filter by type if specified
     if (userPreferences.type) {
@@ -224,6 +225,29 @@ export class StrainService {
 
     if (error) {
       console.error('Error getting recommendations:', error)
+      // If there's an error, fall back to getting any strains
+      return await this.getFallbackRecommendations()
+    }
+
+    // If we got results, return them
+    if (data && data.length > 0) {
+      return data
+    }
+
+    // If no results match the filters, return fallback recommendations
+    console.log('No strains found matching preferences, returning fallback recommendations')
+    return await this.getFallbackRecommendations()
+  }
+
+  private async getFallbackRecommendations(): Promise<Strain[]> {
+    // Get any 10 strains from the database as fallback
+    const { data, error } = await supabase
+      .from('strains')
+      .select('*')
+      .limit(10)
+
+    if (error) {
+      console.error('Error getting fallback recommendations:', error)
       return []
     }
 
