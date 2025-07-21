@@ -212,14 +212,8 @@ export class StrainService {
     }
 
     // Filter by THC preference
-    if (userPreferences.thc_preference) {
-      const thcRanges = {
-        low: ['<15%', '10-15%', '12-18%'],
-        medium: ['15-20%', '18-22%', '15-25%'],
-        high: ['20-25%', '22-26%', '25%+']
-      }
-      // This is a simplified approach - in production you'd want better THC filtering
-    }
+    // TODO: Implement THC filtering logic
+    // This is a simplified approach - in production you'd want better THC filtering
 
     const { data, error } = await query.limit(10)
 

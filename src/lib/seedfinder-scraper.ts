@@ -88,7 +88,7 @@ export class SeedfinderScraper {
     const strain: SeedfinderStrain = {
       name: strainName,
       type: this.determineTypeFromName(strainName),
-      genetics: this.generateGenetics(strainName),
+      genetics: this.generateGenetics(),
       breeder: breederName,
       flowering_time: this.generateFloweringTime(),
       yield_indoor: this.generateYieldIndoor(),
@@ -98,8 +98,8 @@ export class SeedfinderScraper {
       thc_content: this.generateTHCContent(),
       cbd_content: this.generateCBDContent(),
       description: this.generateDescription(strainName),
-      effects: this.generateEffects(strainName),
-      flavors: this.generateFlavors(strainName),
+      effects: this.generateEffects(),
+      flavors: this.generateFlavors(),
       medical_uses: this.generateMedicalUses(),
       growing_difficulty: this.generateGrowingDifficulty(),
       seedfinder_url: url
@@ -239,7 +239,7 @@ export class SeedfinderScraper {
     return 'hybrid'
   }
 
-  private generateGenetics(name: string): string {
+  private generateGenetics(): string {
     const commonGenetics = [
       'Afghani x Skunk #1',
       'White Widow x Northern Lights',
@@ -290,13 +290,13 @@ export class SeedfinderScraper {
     return `${name} is a premium cannabis strain known for its distinctive characteristics and balanced effects. This strain offers a unique combination of therapeutic benefits and recreational enjoyment.`
   }
 
-  private generateEffects(name: string): string[] {
+  private generateEffects(): string[] {
     const allEffects = ['relaxed', 'happy', 'euphoric', 'uplifted', 'creative', 'focused', 'energetic', 'sleepy', 'hungry']
     const numEffects = Math.floor(Math.random() * 3) + 2 // 2-4 effects
     return allEffects.slice(0, numEffects)
   }
 
-  private generateFlavors(name: string): string[] {
+  private generateFlavors(): string[] {
     const allFlavors = ['earthy', 'pine', 'citrus', 'sweet', 'spicy', 'woody', 'fruity', 'diesel', 'floral']
     const numFlavors = Math.floor(Math.random() * 3) + 2 // 2-4 flavors
     return allFlavors.slice(0, numFlavors)
@@ -338,7 +338,7 @@ export class SeedfinderScraper {
     }
   }
 
-  async discoverStrainsByType(type: 'indica' | 'sativa' | 'hybrid', limit: number = 50): Promise<string[]> {
+  async discoverStrainsByType(type: 'indica' | 'sativa' | 'hybrid'): Promise<string[]> {
     try {
       const searchTerms = {
         indica: 'indica',

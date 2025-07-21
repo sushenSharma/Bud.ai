@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../contexts/AuthContext'
+import { Strain } from '../../lib/database.types'
 
 interface CartItem {
   id: string
@@ -16,8 +17,8 @@ interface CartItem {
 export default function CheckoutPage() {
   const router = useRouter()
   const { user, loading } = useAuth()
-  const [selectedStrain, setSelectedStrain] = useState<any>(null)
-  const [cart, setCart] = useState<CartItem[]>([])
+  const [selectedStrain, setSelectedStrain] = useState<Strain | null>(null)
+  const [, setCart] = useState<CartItem[]>([])
   const [quantity, setQuantity] = useState(1)
   const [total, setTotal] = useState(0)
 

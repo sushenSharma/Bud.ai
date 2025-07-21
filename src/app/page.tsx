@@ -95,7 +95,7 @@ export default function Home() {
                     className="w-full h-full object-cover rounded-2xl shadow-xl"
                     onError={(e) => {
                       e.currentTarget.style.display = 'none';
-                      e.currentTarget.nextElementSibling.style.display = 'flex';
+                      e.currentTarget.nextElementSibling?.setAttribute('style', 'display: flex');
                     }}
                   />
                   <div className="hidden w-full h-full bg-teal-100 rounded-2xl shadow-xl items-center justify-center">
@@ -124,7 +124,7 @@ export default function Home() {
                 Professional cannabis guidance for your wellness journey
               </h2>
               <p className="text-base md:text-lg text-gray-600 mb-8 leading-relaxed">
-                Our platform combines cutting-edge AI technology with expert knowledge to provide personalized cannabis recommendations. Whether you're new to cannabis or an experienced user, we help you find the perfect strains for your specific needs and preferences.
+                Our platform combines cutting-edge AI technology with expert knowledge to provide personalized cannabis recommendations. Whether you&apos;re new to cannabis or an experienced user, we help you find the perfect strains for your specific needs and preferences.
               </p>
               <div className="space-y-4 mb-8">
                 <div className="flex items-start">
@@ -221,7 +221,7 @@ export default function Home() {
                   className="w-40 h-40 rounded-full mx-auto object-cover shadow-xl group-hover:shadow-2xl transition-shadow"
                   onError={(e) => {
                     e.currentTarget.style.display = 'none';
-                    e.currentTarget.nextElementSibling.style.display = 'flex';
+                    e.currentTarget.nextElementSibling?.setAttribute('style', 'display: flex');
                   }}
                 />
                 <div className="hidden w-40 h-40 rounded-full mx-auto bg-teal-100 items-center justify-center shadow-xl">
@@ -244,7 +244,7 @@ export default function Home() {
                   className="w-40 h-40 rounded-full mx-auto object-cover shadow-xl group-hover:shadow-2xl transition-shadow"
                   onError={(e) => {
                     e.currentTarget.style.display = 'none';
-                    e.currentTarget.nextElementSibling.style.display = 'flex';
+                    e.currentTarget.nextElementSibling?.setAttribute('style', 'display: flex');
                   }}
                 />
                 <div className="hidden w-40 h-40 rounded-full mx-auto bg-teal-100 items-center justify-center shadow-xl">
@@ -267,7 +267,7 @@ export default function Home() {
                   className="w-40 h-40 rounded-full mx-auto object-cover shadow-xl group-hover:shadow-2xl transition-shadow"
                   onError={(e) => {
                     e.currentTarget.style.display = 'none';
-                    e.currentTarget.nextElementSibling.style.display = 'flex';
+                    e.currentTarget.nextElementSibling?.setAttribute('style', 'display: flex');
                   }}
                 />
                 <div className="hidden w-40 h-40 rounded-full mx-auto bg-teal-100 items-center justify-center shadow-xl">

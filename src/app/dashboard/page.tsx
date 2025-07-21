@@ -8,7 +8,7 @@ import { Strain } from '@/lib/database.types'
 // Declare gtag for TypeScript
 declare global {
   interface Window {
-    gtag?: (...args: any[]) => void
+    gtag?: (...args: unknown[]) => void
   }
 }
 
@@ -208,7 +208,7 @@ export default function DashboardPage() {
         setIsSearching(false)
       }, 500)
 
-    } catch (err) {
+    } catch {
       clearInterval(factInterval)
       clearInterval(progressInterval)
       setError('Network error. Please try again.')
@@ -600,8 +600,8 @@ export default function DashboardPage() {
                 <div>
                   <h4 className="text-green-800 font-semibold mb-1">Powered by BC Cannabis Stores</h4>
                   <p className="text-green-700 text-sm">
-                    We've partnered with BC Cannabis Stores to provide you with access to premium, government-regulated cannabis products. 
-                    When you click "Buy at BC Cannabis" or "Search BC Cannabis", you'll be redirected to their secure platform to purchase your selected strains.
+                    We&apos;ve partnered with BC Cannabis Stores to provide you with access to premium, government-regulated cannabis products. 
+                    When you click &quot;Buy at BC Cannabis&quot; or &quot;Search BC Cannabis&quot;, you&apos;ll be redirected to their secure platform to purchase your selected strains.
                   </p>
                 </div>
               </div>
