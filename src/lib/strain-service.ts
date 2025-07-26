@@ -180,9 +180,11 @@ export class StrainService {
 
   async importStrainsByType(type: 'indica' | 'sativa' | 'hybrid', limit: number = 30): Promise<Strain[]> {
     console.log(`Starting import of ${limit} ${type} strains...`)
-    const strainUrls = await this.scraper.discoverStrainsByType(type, limit)
+    const strainUrls = await this.scraper.discoverStrainsByType(type)
     console.log(`Found ${strainUrls.length} ${type} strain URLs to import`)
-    return this.bulkImportFromSeedfinder(strainUrls)
+    // Limit the URLs if needed
+    const limitedUrls = strainUrls.slice(0, limit)
+    return this.bulkImportFromSeedfinder(limitedUrls)
   }
 
   async getStrainRecommendations(userPreferences: {
