@@ -77,10 +77,10 @@ export class SeedfinderScraper {
       if (error instanceof TypeError && error.message.includes('fetch')) {
         console.error('NETWORK ERROR: Fetch failed - likely blocked by hosting provider or firewall')
       }
-      if (error && 'name' in error && error.name === 'AbortError') {
+      if (error && typeof error === 'object' && 'name' in error && error.name === 'AbortError') {
         console.error('TIMEOUT ERROR: Request timed out after 10 seconds')
       }
-      if (error && 'code' in error && error.code === 'ENOTFOUND') {
+      if (error && typeof error === 'object' && 'code' in error && error.code === 'ENOTFOUND') {
         console.error('DNS ERROR: Could not resolve seedfinder.eu')
       }
       
