@@ -41,7 +41,7 @@ export class SeedfinderScraper {
           'Upgrade-Insecure-Requests': '1',
         },
         // Add timeout for production
-        signal: process.env.NODE_ENV === 'production' ? AbortSignal.timeout(10000) : undefined
+        signal: process.env.NODE_ENV === 'production' ? AbortSignal.timeout(5000) : undefined
       })
       
       const fetchTime = Date.now() - startTime
@@ -54,7 +54,9 @@ export class SeedfinderScraper {
         console.error(`HTTP ${response.status}: ${response.statusText}`)
         if (process.env.NODE_ENV === 'production') {
           console.log('HTTP error in production, using fallback')
-          return this.createFallbackStrainData(strainUrl)
+          const fallbackData = this.createFallbackStrainData(strainUrl)
+          console.log('Fallback data from HTTP error:', fallbackData)
+          return fallbackData
         }
         throw new Error(`HTTP error! status: ${response.status}`)
       }
@@ -74,7 +76,9 @@ export class SeedfinderScraper {
       // If parsing fails in production, use fallback
       if (!parsedStrain && process.env.NODE_ENV === 'production') {
         console.log('HTML parsing failed in production, using fallback')
-        return this.createFallbackStrainData(strainUrl)
+        const fallbackData = this.createFallbackStrainData(strainUrl)
+        console.log('Fallback data from parsing failure:', fallbackData)
+        return fallbackData
       }
       
       return parsedStrain
@@ -97,10 +101,12 @@ export class SeedfinderScraper {
         console.error('DNS ERROR: Could not resolve seedfinder.eu')
       }
       
-      // In production, provide fallback data instead of failing
+      // Always provide fallback data in production
       if (process.env.NODE_ENV === 'production') {
         console.log('PRODUCTION FALLBACK: Creating strain data from URL pattern')
-        return this.createFallbackStrainData(strainUrl)
+        const fallbackData = this.createFallbackStrainData(strainUrl)
+        console.log('Fallback data created:', fallbackData)
+        return fallbackData
       }
       
       console.log('DEVELOPMENT: Returning null (no fallback)')
@@ -108,7 +114,7 @@ export class SeedfinderScraper {
     }
   }
 
-  private createFallbackStrainData(url: string): SeedfinderStrain | null {
+  private createFallbackStrainData(url: string): SeedfinderStrain {
     console.log('Creating fallback strain data for:', url)
     
     const urlParts = url.split('/strain-info/')
