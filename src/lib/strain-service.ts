@@ -53,6 +53,9 @@ export class StrainService {
   async createStrain(strain: Omit<Strain, 'id' | 'created_at' | 'updated_at'>): Promise<Strain | null> {
     if (!supabaseAdmin) {
       console.error('Supabase admin client not initialized')
+      console.error('Environment variables check:')
+      console.error('- SUPABASE_URL:', !!process.env.NEXT_PUBLIC_SUPABASE_URL)
+      console.error('- SERVICE_KEY:', !!process.env.SUPABASE_SERVICE_ROLE_KEY)
       return null
     }
     

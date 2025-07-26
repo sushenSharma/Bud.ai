@@ -27,6 +27,11 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     console.log('POST /api/strains called')
+    console.log('Environment check:')
+    console.log('- SUPABASE_URL:', !!process.env.NEXT_PUBLIC_SUPABASE_URL)
+    console.log('- SERVICE_KEY:', !!process.env.SUPABASE_SERVICE_ROLE_KEY)
+    console.log('- NODE_ENV:', process.env.NODE_ENV)
+    
     const body = await request.json()
     console.log('Request body:', body)
     
