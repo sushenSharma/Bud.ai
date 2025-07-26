@@ -38,16 +38,35 @@ export async function POST(request: NextRequest) {
     // Check if this is an import request
     if (body.seedfinder_url) {
       console.log('Import request for URL:', body.seedfinder_url)
-      const strain = await strainService.importStrainFromSeedfinder(body.seedfinder_url)
-      if (!strain) {
-        console.log('Import failed - no strain returned')
+      console.log('Starting strain import process...')
+      
+      try {
+        const strain = await strainService.importStrainFromSeedfinder(body.seedfinder_url)
+        if (!strain) {
+          console.log('Import failed - no strain returned')
+          return NextResponse.json(
+            { 
+              error: 'Failed to import strain from Seedfinder',
+              details: 'The strain import process returned null - check server logs for details',
+              url: body.seedfinder_url 
+            },
+            { status: 400 }
+          )
+        }
+        console.log('Import successful:', strain.name)
+        return NextResponse.json(strain, { status: 201 })
+      } catch (importError) {
+        console.error('Import process threw an error:', importError)
         return NextResponse.json(
-          { error: 'Failed to import strain from Seedfinder' },
+          { 
+            error: 'Import process failed with exception',
+            details: importError instanceof Error ? importError.message : 'Unknown error',
+            stack: importError instanceof Error ? importError.stack : undefined,
+            url: body.seedfinder_url
+          },
           { status: 400 }
         )
       }
-      console.log('Import successful:', strain.name)
-      return NextResponse.json(strain, { status: 201 })
     }
     
     // Regular strain creation

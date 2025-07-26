@@ -123,34 +123,56 @@ export class StrainService {
   }
 
   async importStrainFromSeedfinder(seedfinderUrl: string): Promise<Strain | null> {
-    // Check if strain already exists
-    const { data: existingStrain } = await supabase
-      .from('strains')
-      .select('*')
-      .eq('seedfinder_url', seedfinderUrl)
-      .single()
+    console.log('=== STARTING STRAIN IMPORT ===')
+    console.log('URL:', seedfinderUrl)
+    console.log('Environment:', process.env.NODE_ENV)
     
-    if (existingStrain) {
-      console.log('Strain already exists:', existingStrain.name)
-      return existingStrain
-    }
+    try {
+      // Check if strain already exists
+      console.log('Checking if strain already exists...')
+      const { data: existingStrain, error: existingStrainError } = await supabase
+        .from('strains')
+        .select('*')
+        .eq('seedfinder_url', seedfinderUrl)
+        .single()
+      
+      if (existingStrainError && existingStrainError.code !== 'PGRST116') {
+        console.error('Error checking existing strain:', existingStrainError)
+      }
+      
+      if (existingStrain) {
+        console.log('Strain already exists:', existingStrain.name)
+        return existingStrain
+      }
 
-    // Fetch strain data from seedfinder
-    const scrapeData = await this.scraper.fetchStrainData(seedfinderUrl)
-    if (!scrapeData) {
-      console.error('Failed to scrape strain data from:', seedfinderUrl)
-      return null
-    }
+      console.log('Strain does not exist, proceeding with scraping...')
+      
+      // Fetch strain data from seedfinder
+      const scrapeData = await this.scraper.fetchStrainData(seedfinderUrl)
+      if (!scrapeData) {
+        console.error('Failed to scrape strain data from:', seedfinderUrl)
+        return null
+      }
 
-    // Create strain in database
-    const strain = await this.createStrain(scrapeData)
-    if (!strain) {
-      console.error('Failed to create strain in database')
-      return null
-    }
+      console.log('Scraping successful, creating strain in database...')
+      console.log('Scraped data:', scrapeData)
 
-    console.log('Successfully imported strain:', strain.name)
-    return strain
+      // Create strain in database
+      const strain = await this.createStrain(scrapeData)
+      if (!strain) {
+        console.error('Failed to create strain in database')
+        return null
+      }
+
+      console.log('Successfully imported strain:', strain.name)
+      console.log('=== STRAIN IMPORT COMPLETE ===')
+      return strain
+    } catch (error) {
+      console.error('=== STRAIN IMPORT ERROR ===')
+      console.error('Error during strain import:', error)
+      console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace')
+      throw error
+    }
   }
 
   async bulkImportFromSeedfinder(strainUrls: string[]): Promise<Strain[]> {

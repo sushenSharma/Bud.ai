@@ -68,8 +68,16 @@ export default function StrainsPage() {
         setImportUrl('')
         fetchStrains() // Refresh the list
       } else {
-        showMessage(`Error: ${data.error}`)
+        const errorMsg = data.details ? `${data.error}: ${data.details}` : data.error
+        showMessage(`Error: ${errorMsg}`)
         console.log('Full error response:', data)
+        console.log('Error details:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: data.error,
+          details: data.details,
+          url: data.url
+        })
       }
     } catch (error) {
       showMessage(`Error: ${error}`)

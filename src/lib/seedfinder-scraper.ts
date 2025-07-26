@@ -22,9 +22,12 @@ export class SeedfinderScraper {
   private baseUrl = 'https://seedfinder.eu'
 
   async fetchStrainData(strainUrl: string): Promise<SeedfinderStrain | null> {
+    const startTime = Date.now()
     try {
+      console.log('=== STARTING EXTERNAL REQUEST ===')
       console.log('Fetching strain data from:', strainUrl)
       console.log('Environment:', process.env.NODE_ENV)
+      console.log('Timestamp:', new Date().toISOString())
       
       // Try with different headers to avoid blocking
       const response = await fetch(strainUrl, {
@@ -40,6 +43,9 @@ export class SeedfinderScraper {
         // Add timeout for production
         signal: process.env.NODE_ENV === 'production' ? AbortSignal.timeout(10000) : undefined
       })
+      
+      const fetchTime = Date.now() - startTime
+      console.log(`External request completed in ${fetchTime}ms`)
       
       console.log('Response status:', response.status)
       console.log('Response headers:', Object.fromEntries(response.headers.entries()))
@@ -60,15 +66,31 @@ export class SeedfinderScraper {
       
       return this.parseStrainHtml(html, strainUrl)
     } catch (error) {
-      console.error('Error fetching strain data:', error)
-      console.error('Error details:', error instanceof Error ? error.message : String(error))
+      const fetchTime = Date.now() - startTime
+      console.error('=== EXTERNAL REQUEST FAILED ===')
+      console.error(`Request failed after ${fetchTime}ms`)
+      console.error('Error type:', error?.constructor?.name)
+      console.error('Error message:', error instanceof Error ? error.message : String(error))
+      console.error('Error details:', error)
+      
+      // Check for specific error types
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        console.error('NETWORK ERROR: Fetch failed - likely blocked by hosting provider or firewall')
+      }
+      if (error && 'name' in error && error.name === 'AbortError') {
+        console.error('TIMEOUT ERROR: Request timed out after 10 seconds')
+      }
+      if (error && 'code' in error && error.code === 'ENOTFOUND') {
+        console.error('DNS ERROR: Could not resolve seedfinder.eu')
+      }
       
       // In production, provide fallback data instead of failing
       if (process.env.NODE_ENV === 'production') {
-        console.log('Production fallback: creating strain data from URL pattern')
+        console.log('PRODUCTION FALLBACK: Creating strain data from URL pattern')
         return this.createFallbackStrainData(strainUrl)
       }
       
+      console.log('DEVELOPMENT: Returning null (no fallback)')
       return null
     }
   }
