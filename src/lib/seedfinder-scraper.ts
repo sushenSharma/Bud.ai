@@ -51,6 +51,11 @@ export class SeedfinderScraper {
       console.log('Response headers:', Object.fromEntries(response.headers.entries()))
       
       if (!response.ok) {
+        console.error(`HTTP ${response.status}: ${response.statusText}`)
+        if (process.env.NODE_ENV === 'production') {
+          console.log('HTTP error in production, using fallback')
+          return this.createFallbackStrainData(strainUrl)
+        }
         throw new Error(`HTTP error! status: ${response.status}`)
       }
       
@@ -64,7 +69,15 @@ export class SeedfinderScraper {
         console.log('Full HTML (too short):', html)
       }
       
-      return this.parseStrainHtml(html, strainUrl)
+      const parsedStrain = this.parseStrainHtml(html, strainUrl)
+      
+      // If parsing fails in production, use fallback
+      if (!parsedStrain && process.env.NODE_ENV === 'production') {
+        console.log('HTML parsing failed in production, using fallback')
+        return this.createFallbackStrainData(strainUrl)
+      }
+      
+      return parsedStrain
     } catch (error) {
       const fetchTime = Date.now() - startTime
       console.error('=== EXTERNAL REQUEST FAILED ===')
